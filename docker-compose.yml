@@ -1,0 +1,14 @@
+services:
+  didrit-watcher:
+    build: .
+    container_name: didrit-watcher
+    restart: unless-stopped
+    env_file:
+      - .env
+    volumes:
+      - didrit_data:/app/data
+    environment:
+      - STATE_FILE_PATH=/app/data/state.json
+
+volumes:
+  didrit_data:
