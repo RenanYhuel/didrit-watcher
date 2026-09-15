@@ -46,8 +46,10 @@ pub struct GeminiResponseBody {
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct AiAnalysis {
     pub title: String,
-    pub summary: String,
-    pub homework_items: Vec<String>,
-    pub new_documents: Vec<String>,
+    pub fait_en_classe: Option<String>,
+    pub a_faire: Option<String>,
+    pub date_echeance: Option<String>,
+    pub evaluation: Option<String>,
+    pub nouveaux_documents: Vec<String>,
     pub priority: u8,
 }

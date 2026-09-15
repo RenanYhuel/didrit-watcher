@@ -36,46 +36,52 @@ impl NtfyNotifier {
         diff: &DiffResult,
         analysis: &AiAnalysis,
     ) -> NtfyPayload {
-        let mut msg = String::new();
-        msg.push_str(&format!("**{}**\n\n", analysis.summary));
+        let mut sections = Vec::new();
 
-        if !analysis.homework_items.is_empty() {
-            msg.push_str("### Travail a faire\n");
-            for item in &analysis.homework_items {
-                msg.push_str(&format!("* {}\n", item));
+        if let Some(fait) = &analysis.fait_en_classe {
+            if !fait.trim().is_empty() {
+                sections.push(format!("FAIT EN CLASSE :\n{}", fait.trim()));
             }
-            msg.push('\n');
         }
 
-        if !analysis.new_documents.is_empty() {
-            msg.push_str("### Documents / Chapitres\n");
-            for doc in &analysis.new_documents {
-                msg.push_str(&format!("* {}\n", doc));
+        if let Some(a_faire) = &analysis.a_faire {
+            if !a_faire.trim().is_empty() {
+                let echeance = match &analysis.date_echeance {
+                    Some(d) if !d.trim().is_empty() => format!(" (pour le {})", d.trim()),
+                    _ => String::new(),
+                };
+                sections.push(format!("A FAIRE{} :\n{}", echeance, a_faire.trim()));
             }
-            msg.push('\n');
+        }
+
+        if let Some(eval) = &analysis.evaluation {
+            if !eval.trim().is_empty() {
+                sections.push(format!("EVALUATION :\n{}", eval.trim()));
+            }
         }
 
         if !diff.new_attachments.is_empty() {
-            msg.push_str("### Liens directs\n");
+            let mut docs_lines = Vec::new();
             for att in &diff.new_attachments {
-                msg.push_str(&format!("* [{}]({})\n", att.text, att.url));
+                docs_lines.push(format!("- {} : {}", att.text, att.url));
             }
+            sections.push(format!("NOUVEAUX DOCUMENTS :\n{}", docs_lines.join("\n")));
         }
 
-        let mut tags = vec!["school".to_string(), "books".to_string()];
-        if analysis.priority >= 4 {
-            tags.push("warning".to_string());
-        }
+        let msg = if sections.is_empty() {
+            format!("Mise a jour detectee sur {}", page.page_title)
+        } else {
+            sections.join("\n\n")
+        };
 
         let title = if analysis.title.is_empty() {
-            format!("Nouveau contenu : {}", page.page_title)
+            page.page_title.clone()
         } else {
             analysis.title.clone()
         };
 
         let mut payload = NtfyPayload::new(&self.topic, &title, &msg)
             .with_priority(analysis.priority)
-            .with_tags(tags)
             .with_click(&page.source_url)
             .add_action("Ouvrir site", &page.source_url);
 
@@ -95,7 +101,11 @@ impl NtfyNotifier {
     pub async fn send(&self, payload: &NtfyPayload) -> Result<()> {
         let endpoint = format!("{}/", self.server_url.trim_end_matches('/'));
 
-        let mut req = self.client.post(&endpoint).json(payload);
+        let mut req = self
+            .client
+            .post(&endpoint)
+            .header("Markdown", "yes")
+            .json(payload);
 
         if let Some(tok) = &self.token {
             let mut headers = HeaderMap::new();

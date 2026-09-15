@@ -26,6 +26,7 @@ fn test_diff_engine_no_changes() {
         last_hash: "hash123".to_string(),
         last_checked_at: "2026-09-13T10:00:00Z".to_string(),
         known_attachments: vec!["https://www.didrit.fr/doc.pdf".to_string()],
+        known_cours_titles: Vec::new(),
         last_cahier_text: "Ex 1".to_string(),
         last_devoir_text: "Devoir 1".to_string(),
     };
@@ -61,6 +62,7 @@ fn test_diff_engine_detects_new_attachment_and_cahier_change() {
         last_hash: "hash123".to_string(),
         last_checked_at: "2026-09-13T10:00:00Z".to_string(),
         known_attachments: vec!["https://www.didrit.fr/doc1.pdf".to_string()],
+        known_cours_titles: Vec::new(),
         last_cahier_text: "Ex 1".to_string(),
         last_devoir_text: "Devoir 1".to_string(),
     };
@@ -98,5 +100,5 @@ fn test_diff_engine_detects_new_attachment_and_cahier_change() {
         diff.new_attachments[0].url,
         "https://www.didrit.fr/doc2.pdf"
     );
-    assert!(diff.cahier_diff_text.is_some());
+    assert!(diff.current_cahier_text.is_some());
 }

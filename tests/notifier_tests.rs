@@ -51,25 +51,36 @@ fn test_notifier_build_payload_from_analysis() {
             text: "Devoir Maison 1".to_string(),
             url: "https://www.didrit.fr/DM1.pdf".to_string(),
         }],
-        cahier_diff_text: Some("Ex 56 p 29".to_string()),
-        devoir_diff_text: None,
+        previous_cahier_text: None,
+        current_cahier_text: Some("Ex 56 p 29".to_string()),
+        previous_devoir_text: None,
+        current_devoir_text: None,
         new_cours: Vec::new(),
     };
 
     let analysis = AiAnalysis {
-        title: "Nouveau devoir pour lundi".to_string(),
-        summary: "Deux exercices sur les complexes a faire.".to_string(),
-        homework_items: vec!["Ex 56 p 29 pour lundi".to_string()],
-        new_documents: vec!["DM1.pdf".to_string()],
+        title: "Maths Expertes : Seance du 11/09".to_string(),
+        fait_en_classe: Some("Cor. Ch.1 Ex. 27, 28 p 27 + Cours Ch.1-III".to_string()),
+        a_faire: Some("Chercher Ch.1 Ex. 56, 61 p 29".to_string()),
+        date_echeance: Some("Lundi 14/09".to_string()),
+        evaluation: None,
+        nouveaux_documents: vec!["DM1.pdf".to_string()],
         priority: 4,
     };
 
     let payload = notifier.build_payload(&page, &diff, &analysis);
 
-    assert_eq!(payload.title, "Nouveau devoir pour lundi");
+    assert_eq!(payload.title, "Maths Expertes : Seance du 11/09");
     assert_eq!(payload.priority, 4);
-    assert!(payload.tags.contains(&"warning".to_string()));
-    assert!(payload.message.contains("Ex 56 p 29 pour lundi"));
+    assert!(payload
+        .message
+        .contains("FAIT EN CLASSE :\nCor. Ch.1 Ex. 27, 28 p 27 + Cours Ch.1-III"));
+    assert!(payload
+        .message
+        .contains("A FAIRE (pour le Lundi 14/09) :\nChercher Ch.1 Ex. 56, 61 p 29"));
+    assert!(payload
+        .message
+        .contains("NOUVEAUX DOCUMENTS :\n- Devoir Maison 1 : https://www.didrit.fr/DM1.pdf"));
     assert_eq!(payload.actions.len(), 2);
     assert_eq!(payload.actions[0].url, "https://www.didrit.fr/Maths_TE.htm");
     assert_eq!(payload.actions[1].url, "https://www.didrit.fr/DM1.pdf");

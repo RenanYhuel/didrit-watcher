@@ -11,6 +11,7 @@ pub struct PageState {
     pub last_hash: String,
     pub last_checked_at: String,
     pub known_attachments: Vec<String>,
+    pub known_cours_titles: Vec<String>,
     pub last_cahier_text: String,
     pub last_devoir_text: String,
 }
@@ -62,6 +63,7 @@ impl AppState {
         url: &str,
         hash: String,
         attachments: Vec<String>,
+        cours_titles: Vec<String>,
         cahier: String,
         devoir: String,
     ) {
@@ -70,6 +72,7 @@ impl AppState {
             last_hash: hash,
             last_checked_at: Utc::now().to_rfc3339(),
             known_attachments: attachments,
+            known_cours_titles: cours_titles,
             last_cahier_text: cahier,
             last_devoir_text: devoir,
         };

@@ -15,6 +15,7 @@ pub struct NtfyPayload {
     pub title: String,
     pub message: String,
     pub priority: u8,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
     pub tags: Vec<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub click: Option<String>,
@@ -34,7 +35,7 @@ impl NtfyPayload {
             title: title.to_string(),
             message: message.to_string(),
             priority: 3,
-            tags: vec!["school".to_string(), "books".to_string()],
+            tags: Vec::new(),
             click: None,
             attach: None,
             filename: None,

@@ -65,17 +65,17 @@ impl WatcherService {
                     Err(e) => {
                         eprintln!("Error during Gemini AI analysis: {:?}", e);
                         crate::ai::AiAnalysis {
-                            title: format!("Mise a jour detectee sur {}", parsed.page_title),
-                            summary:
-                                "De nouveaux devoirs ou documents ont ete ajoutes sur la page."
-                                    .to_string(),
-                            homework_items: Vec::new(),
-                            new_documents: diff
+                            title: format!("Mise a jour : {}", parsed.page_title),
+                            fait_en_classe: diff.current_cahier_text.clone(),
+                            a_faire: None,
+                            date_echeance: None,
+                            evaluation: diff.current_devoir_text.clone(),
+                            nouveaux_documents: diff
                                 .new_attachments
                                 .iter()
                                 .map(|a| a.text.clone())
                                 .collect(),
-                            priority: 4,
+                            priority: 3,
                         }
                     }
                 };
@@ -107,6 +107,11 @@ impl WatcherService {
             .iter()
             .map(|a| a.url.clone())
             .collect();
+        let cours_titles = parsed
+            .cours_entries
+            .iter()
+            .map(|c| c.title.clone())
+            .collect();
         let cahier = parsed
             .cahier_entries
             .iter()
@@ -124,6 +129,7 @@ impl WatcherService {
             url,
             parsed.full_content_hash.clone(),
             attachments,
+            cours_titles,
             cahier,
             devoir,
         );

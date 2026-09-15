@@ -6,8 +6,10 @@ pub struct DiffResult {
     pub has_changes: bool,
     pub is_first_run: bool,
     pub new_attachments: Vec<AttachmentLink>,
-    pub cahier_diff_text: Option<String>,
-    pub devoir_diff_text: Option<String>,
+    pub previous_cahier_text: Option<String>,
+    pub current_cahier_text: Option<String>,
+    pub previous_devoir_text: Option<String>,
+    pub current_devoir_text: Option<String>,
     pub new_cours: Vec<CoursEntry>,
 }
 
@@ -22,8 +24,10 @@ impl DiffEngine {
                     has_changes: false,
                     is_first_run: true,
                     new_attachments: Vec::new(),
-                    cahier_diff_text: None,
-                    devoir_diff_text: None,
+                    previous_cahier_text: None,
+                    current_cahier_text: None,
+                    previous_devoir_text: None,
+                    current_devoir_text: None,
                     new_cours: Vec::new(),
                 };
             }
@@ -34,8 +38,10 @@ impl DiffEngine {
                 has_changes: false,
                 is_first_run: false,
                 new_attachments: Vec::new(),
-                cahier_diff_text: None,
-                devoir_diff_text: None,
+                previous_cahier_text: None,
+                current_cahier_text: None,
+                previous_devoir_text: None,
+                current_devoir_text: None,
                 new_cours: Vec::new(),
             };
         }
@@ -54,10 +60,13 @@ impl DiffEngine {
             .collect::<Vec<_>>()
             .join("\n");
 
-        let cahier_diff = if current_cahier_text != prev.last_cahier_text {
-            Some(current_cahier_text)
+        let (cahier_prev, cahier_curr) = if current_cahier_text != prev.last_cahier_text {
+            (
+                Some(prev.last_cahier_text.clone()),
+                Some(current_cahier_text),
+            )
         } else {
-            None
+            (None, None)
         };
 
         let current_devoir_text = current
@@ -67,22 +76,36 @@ impl DiffEngine {
             .collect::<Vec<_>>()
             .join("\n");
 
-        let devoir_diff = if current_devoir_text != prev.last_devoir_text {
-            Some(current_devoir_text)
+        let (devoir_prev, devoir_curr) = if current_devoir_text != prev.last_devoir_text {
+            (
+                Some(prev.last_devoir_text.clone()),
+                Some(current_devoir_text),
+            )
         } else {
-            None
+            (None, None)
         };
 
-        let has_changes =
-            !new_attachments.is_empty() || cahier_diff.is_some() || devoir_diff.is_some();
+        let new_cours: Vec<CoursEntry> = current
+            .cours_entries
+            .iter()
+            .filter(|c| !prev.known_cours_titles.contains(&c.title))
+            .cloned()
+            .collect();
+
+        let has_changes = !new_attachments.is_empty()
+            || cahier_curr.is_some()
+            || devoir_curr.is_some()
+            || !new_cours.is_empty();
 
         DiffResult {
             has_changes,
             is_first_run: false,
             new_attachments,
-            cahier_diff_text: cahier_diff,
-            devoir_diff_text: devoir_diff,
-            new_cours: current.cours_entries.clone(),
+            previous_cahier_text: cahier_prev,
+            current_cahier_text: cahier_curr,
+            previous_devoir_text: devoir_prev,
+            current_devoir_text: devoir_curr,
+            new_cours,
         }
     }
 }
